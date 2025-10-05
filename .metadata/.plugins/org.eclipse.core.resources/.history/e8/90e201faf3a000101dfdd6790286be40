@@ -1,0 +1,116 @@
+@charset "UTF-8";
+
+/* --- ベースとフォント設定 --- */
+body {
+	font-family: 'Arial', sans-serif;
+	background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+	/* ポップなグラデーション背景 */
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	min-height: 100vh;
+	margin: 0;
+	color: #333;
+}
+
+.game-container {
+	background-color: #ffffff;
+	padding: 30px;
+	border-radius: 25px;
+	box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+	/* 浮き上がるような影 */
+	max-width: 450px;
+	width: 90%;
+	text-align: center;
+	border: 5px solid #ff7e5f;
+	/* 外枠もポップに */
+}
+
+/* --- ヘッダー --- */
+.game-header h1 {
+	color: #ff7e5f;
+	margin-bottom: 10px;
+	font-size: 2.2em;
+}
+
+.game-header p {
+	color: #555;
+	margin-bottom: 30px;
+}
+
+/* --- セクションタイトル --- */
+.game-main h2 {
+	color: #6a00ff;
+	/* 鮮やかな紫 */
+	margin-top: 20px;
+	margin-bottom: 15px;
+	font-size: 1.2em;
+	border-bottom: 2px dashed #dcdcdc;
+	padding-bottom: 5px;
+}
+
+/* --- テキストボックス共通スタイル --- */
+.text-box {
+	width: calc(100% - 20px);
+	padding: 15px 10px;
+	margin-bottom: 25px;
+	border: 3px solid #6a00ff;
+	border-radius: 12px;
+	font-size: 1.1em;
+	box-sizing: border-box;
+	transition: all 0.3s ease;
+}
+
+/* --- お題ボックス (リードオンリー) --- */
+.prompt-box {
+	background-color: #e0f7fa;
+	/* 明るい水色 */
+	color: #00796b;
+	font-weight: bold;
+	text-align: center;
+	box-shadow: 0 4px #00bcd4;
+	/* 下の影で立体感を */
+}
+
+/* --- 入力ボックス --- */
+.response-box {
+	background-color: #fff9c4;
+	/* 明るい黄色 */
+}
+
+.response-box:focus {
+	border-color: #ff5722;
+	/* フォーカス時にオレンジに */
+	box-shadow: 0 0 10px rgba(255, 87, 34, 0.5);
+	outline: none;
+}
+
+/* --- 送信ボタン --- */
+.submit-button {
+	background-color: #ff5722;
+	/* 鮮やかなオレンジ */
+	color: white;
+	border: none;
+	padding: 15px 30px;
+	border-radius: 50px;
+	/* 丸いボタン */
+	font-size: 1.2em;
+	font-weight: bold;
+	cursor: pointer;
+	box-shadow: 0 6px #e64a19;
+	/* 押し込みやすい影 */
+	transition: all 0.1s;
+	width: 100%;
+	max-width: 300px;
+	margin-top: 20px;
+}
+
+.submit-button:hover {
+	background-color: #e64a19;
+}
+
+.submit-button:active {
+	box-shadow: 0 2px #e64a19;
+	/* ボタンが押された時のアニメーション */
+	transform: translateY(4px);
+}

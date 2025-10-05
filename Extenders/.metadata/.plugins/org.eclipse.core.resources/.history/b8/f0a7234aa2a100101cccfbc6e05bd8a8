@@ -1,0 +1,64 @@
+
+// エンドポイント
+const ws = new WebSocket("ws://localhost:8080/Extenders/chat");
+
+$(function() {
+
+	const pElement = document.getElementById('result-text');
+	pElement.textContent = "　";
+	let prompt_box = document.getElementById("prompt-box");
+	prompt_box.value = "　";
+
+	$("#submit-button").click(function() {
+		console.log("送信ボタンが押されました");
+		let messageInput = document.getElementById("response-box");
+		sendMessage("pr" + messageInput.value);
+		messageInput.value = "";
+		document.getElementById("submit-button").disabled = true;
+		const pElement = document.getElementById('result-text');
+		pElement.textContent = 'みんなの回答を待っています';
+	});
+});
+
+// サーバからメッセージを受信したときの処理
+ws.onmessage = function(event) {
+
+	let pElement = document.getElementById('result-text');
+
+	const checkDigit = event.data.substring(0, 2);
+	const content = event.data.substring(2);
+
+	console.log(`[IN] 受信したチェックディジット: ${checkDigit}`); // デバッグ用
+
+	switch (checkDigit) { // ★ switch文の条件も、ここで定義した変数を使う方がクリーンです ★
+		case "tm":
+			let prompt_box = document.getElementById("prompt-box");
+			prompt_box.value = content; // content を使用
+			break;
+		case "gc":
+			// ...
+			break;
+		case "dt":
+			console.log("dt受け取りました。");
+			try {
+				const wordsJson = content; // content を使用
+				// JSON文字列をLocal Storageに保存
+				localStorage.setItem('gameWordsJson', wordsJson);
+				console.log("✅ dtメッセージ受信: LocalStorageにデータを保存しました。");
+			} catch (e) {
+				console.error("データ保存エラー:", e);
+			}
+			break;
+		case "go":
+			// ...
+			break;
+		default:
+	}
+}
+
+// サーバにメッセージを送るためのメソッド
+function sendMessage(value) {
+	setTimeout(function() {
+		ws.send(value);
+	}, 300);
+}

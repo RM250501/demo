@@ -1,0 +1,88 @@
+
+// エンドポイント
+const ws = new WebSocket("ws://localhost:8080/Extenders/chat");
+
+$(function() {
+
+	const pElement = document.getElementById('result-text');
+	pElement.textContent = "　";
+	let prompt_box = document.getElementById("prompt-box");
+	prompt_box.value = "　";
+
+	$("#submit-button").click(function() {
+		console.log("送信ボタンが押されました");
+		let messageInput = document.getElementById("response-box");
+		sendMessage("pr" + messageInput.value);
+		messageInput.value = "";
+		document.getElementById("submit-button").disabled = true;
+		const pElement = document.getElementById('result-text');
+		pElement.textContent = 'みんなの回答を待っています';
+	});
+});
+
+// サーバからメッセージを受信したときの処理
+// エンドポイント (WebSocket接続の再定義が必要な場合は残す)
+// const ws = new WebSocket("ws://localhost:8080/Extenders/chat"); 
+
+// ws.onmessage は、既存の ws.onmessage = function(event) {...} を置き換えてください。
+
+ws.onmessage = function(event) {
+
+	let pElement = document.getElementById('result-text');
+
+	// ★ 修正点: checkDigit と content をここで定義する！ ★
+	const rawData = event.data;
+	const checkDigit = rawData.substring(0, 2);
+	const content = rawData.substring(2);
+
+	console.log(`[IN] 受信したチェックディジット: ${checkDigit}`); // デバッグ用
+
+	switch (checkDigit) {
+		case "tm":
+			let prompt_box = document.getElementById("prompt-box");
+			prompt_box.value = content;
+			console.log("✅ お題を設定しました:", content);
+			break;
+
+		case "gc":
+			pElement = document.getElementById('result-text');
+			pElement.textContent = "GAME CLEAR";
+			window.location.href = "clear.html";
+			break;
+
+		case "dt":
+			console.log("dt受け取りました。LocalStorageに保存します。");
+			try {
+				const wordsJson = content;
+
+				// JSON文字列をLocal Storageに保存
+				localStorage.setItem('gameWordsJson', wordsJson);
+
+				// ★ デバッグログ: 保存された内容を確認
+				console.group("✅ dtメッセージ受信: データ保存完了");
+				console.log("LocalStorageキー:", "gameWordsJson");
+				console.log("保存されたJSON文字列:", localStorage.getItem('gameWordsJson'));
+				console.groupEnd();
+
+			} catch (e) {
+				console.error("【dt処理エラー】データ保存失敗:", e);
+			}
+			break; // breakして次のメッセージ（通常はgo）を待つ
+
+		case "go":
+			// dtの保存が終わった後、画面遷移を行います
+			pElement.textContent = "GAME OVER";
+			window.location.href = "gameover.html";
+			break;
+
+		default:
+			console.warn(`[WARN] 未知のチェックディジットを受信: ${checkDigit}`);
+	}
+}
+
+// サーバにメッセージを送るためのメソッド
+function sendMessage(value) {
+	setTimeout(function() {
+		ws.send(value);
+	}, 300);
+}

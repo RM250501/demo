@@ -1,0 +1,32 @@
+
+// エンドポイント
+const ws = new WebSocket("ws://localhost:8080/Extenders/chat");
+
+$(function() {
+	$("#submit-button").click(function() {
+		console.log("送信ボタンが押されました");
+		let messageInput = document.getElementById("response-box");
+		sendMessage("pr" + messageInput.value);
+		messageInput.value = "";
+		document.getElementById("submit-button").disabled = true;
+	});
+});
+
+// サーバからメッセージを受信したときの処理
+ws.onmessage = function(event) {
+	switch (event.data.substring(0, 2)) {
+		case "tm":
+			let prompt_box = document.getElementById("prompt-box");
+			prompt_box.value = event.data.substring(2);
+		case "gc":
+			let result-text = document.getElementById("result-text");
+			
+	}
+}
+
+// サーバにメッセージを送るためのメソッド
+function sendMessage(value) {
+	setTimeout(function() {
+		ws.send(value);
+	}, 300);
+}

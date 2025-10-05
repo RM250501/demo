@@ -1,0 +1,46 @@
+
+// エンドポイント
+const ws = new WebSocket("ws://localhost:8080/Extenders/chat");
+
+$(function() {
+
+	ws.sendMessage("rs");
+
+});
+
+// サーバからメッセージを受信したときの処理
+ws.onmessage = function(event) {
+
+	switch (event.data.substring(0, 2)) {
+		case "rs":
+			try {
+				const wordsJson = content; // contentはJSON配列文字列 ["ねこ", "いぬ", "うさぎ"]
+
+				// 1. Local StorageにJSON文字列を保存（画面遷移用）
+				localStorage.setItem('gameWordsJson', wordsJson);
+
+				// 2. JSON文字列をJavaScriptの配列オブジェクトに変換
+				const receivedWords = JSON.parse(wordsJson);
+
+				// 3. コンソールにデータを出力して確認
+				console.group("✅ WebSocketから回答リストを受信 (dt)");
+				console.log("JSON文字列 (LocalStorageに保存):", wordsJson);
+				console.log("JS配列オブジェクト:", receivedWords);
+				console.groupEnd();
+
+			} catch (e) {
+				console.error("【dt処理エラー】受信データが正しく解析できませんでした:", e);
+				console.log("受信データ:", content);
+			}
+			break;
+
+	}
+
+}
+
+// サーバにメッセージを送るためのメソッド
+function sendMessage(value) {
+	setTimeout(function() {
+		ws.send(value);
+	}, 300);
+}

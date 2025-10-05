@@ -1,0 +1,54 @@
+@charset "UTF-8";
+
+/* ... (body, .game-container, game-header, game-main, text-box などの既存スタイルは省略) ... */
+
+/* --- 新しく追加する結果表示セクション --- */
+.result-section {
+    margin: 30px 0;
+    padding: 20px;
+    border-radius: 15px;
+    background-color: #fce4ec; /* 薄いピンクでポップに */
+    border: 3px dashed #e91e63; /* ダッシュ線で強調 */
+    transition: all 0.5s ease;
+}
+
+.result-section.hidden {
+    /* 初期状態や待機状態では非表示にするためのクラス */
+    display: none;
+    opacity: 0;
+}
+
+.result-section h2 {
+    color: #e91e63; /* 濃いピンク */
+    font-size: 1.5em;
+    margin-bottom: 10px;
+    border-bottom: none; /* 他のh2のスタイルを上書き */
+}
+
+.result-message {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #333;
+}
+
+/* --- 結果表示のテーマカラー (JavaScriptで切り替える想定) --- */
+
+/* 🚀 全員一致の場合 */
+.result-section.match {
+    background-color: #e8f5e9; /* 薄い緑 */
+    border-color: #4caf50; /* 緑の強調線 */
+}
+.result-section.match .result-message {
+    color: #2e7d32; /* 濃い緑 */
+}
+
+/* ❌ 不一致の場合 */
+.result-section.mismatch {
+    background-color: #ffebee; /* 薄い赤 */
+    border-color: #f44336; /* 赤の強調線 */
+}
+.result-section.mismatch .result-message {
+    color: #d32f2f; /* 濃い赤 */
+}
+
+/* ... (submit-button などの既存スタイルは省略) ... */

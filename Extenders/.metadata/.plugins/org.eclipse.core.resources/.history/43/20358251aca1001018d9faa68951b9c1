@@ -1,0 +1,153 @@
+package end_point;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
+
+import javax.websocket.OnClose;
+import javax.websocket.OnError;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
+import javax.websocket.Session;
+import javax.websocket.server.ServerEndpoint;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+@ServerEndpoint("/chat")
+
+public class EndPoint {
+
+	private static Set<Session> clients = new CopyOnWriteArraySet<>();
+	private static Map<String, String> userNames = new HashMap<>();
+	private static List<String> words = new ArrayList<>();
+	private static Map<String, String> wordsMap = new HashMap<>();
+	private static int cnt = 0;
+	private final ObjectMapper objectMapper = new ObjectMapper();
+	private static String word[] = { "動物", "食べ物", "スポーツ", "歴史", "科学", "地理", "文学", "音楽", "映画", "ことわざ", "有名人", "アニメ",
+			"ゲーム", "国", "都道府県", "季節", "自然現象", "学校生活", "職業", "乗り物", "IT・テクノロジー", "ファッション", "感情", "日常生活", "イベント", "道具",
+			"植物", "宇宙", "医療", "文化", "建物", "天気", "色", "数", "時間", "交通", "料理", "旅行", "言語", "芸術", "教育", "産業", "政治", "経済",
+			"社会問題", "動作", "生き物", "神話", "宗教", "地名", "スポーツ選手" };
+	private static int randomIndex;
+	
+	Random random = new Random();
+
+	@OnOpen
+	public void onOpen(Session session) throws IOException {
+		clients.add(session);
+		System.out.println("New connection:" + session.getId());
+		if (clients.size() == 2) {
+			randomIndex = random.nextInt(word.length);
+			for (Session client : clients) {
+				client.getBasicRemote().sendText("tm" + "恐竜");
+			}
+		}
+	}
+
+	@OnMessage
+	public void onMessage(String message, Session sender) throws IOException, InterruptedException {
+
+		System.out.println(message);
+		System.out.println("User" + sender.getId() + " : " + clients.size());
+
+		switch (message.substring(0, 2)) {
+		case "pr":
+			words.add(message.substring(2));
+			wordsMap.put("User" + sender.getId(), message.substring(2));
+			cnt++;
+			System.out.println("words : " + words);
+			break;
+		}
+
+		System.out.println("cnt : " + cnt);
+
+		if (cnt == clients.size()) {
+
+			System.out.println("全員の回答が出そろいました");
+
+			int ch = 0;
+			String ch_str = words.get(0);
+
+			for (String st : words) {
+				if (st.equals(ch_str)) {
+					ch++;
+				}
+			}
+
+			if (ch == clients.size()) {
+				System.out.println("全員一致しました、おめでとう！");
+				for (Session client : clients) {
+					client.getBasicRemote().sendText("gc");
+				}
+			} else {
+				System.out.println("残念、みんなの息が合いませんでした。");
+				try {
+					// 1. wordsリスト全体をJSON配列文字列に変換 (一度だけ実行)
+					String wordsJson = objectMapper.writeValueAsString(wordsMap);
+					System.out.println("wordsJson : " + wordsJson); // JSONデータ確認
+
+					// 2. プレフィックス "dt" (Data Transfer) を付けて送信
+					String dataMessage = "dt" + wordsJson;
+
+					// 3. 全てのクライアントに、dt → go の順で送信
+					for (Session client : clients) { // ★ client2をclientに統一し、このループだけ残す ★
+
+						// まずデータを送り、LocalStorageに保存させる
+						client.getBasicRemote().sendText(dataMessage);
+						// その後、既存の go 処理を実行して画面遷移をトリガーする
+						client.getBasicRemote().sendText("go");
+					}
+
+				} catch (IOException e) { // InterruptedExceptionもキャッチ
+					System.err.println("送信エラー: " + e.getMessage());
+					// JSON化に失敗しても、既存の go 処理だけは続行させたい場合
+					for (Session client : clients) {
+						client.getBasicRemote().sendText("go");
+					}
+				}
+			}
+		}
+
+		//		String name = "";
+		//
+		//		// messageの先頭2文字はチェックディジット
+		//		// このswitch文でチェックディジットを判定
+		//		switch (message.substring(0, 2)) {
+		//		case "un": // ユーザ名の登録
+		//			userNames.put(sender.getId(), message.substring(2));
+		//			break;
+		//		case "me": // メッセージの送信
+		//			for (Map.Entry<String, String> entry : userNames.entrySet()) {
+		//				if (entry.getKey().equals(sender.getId())) {
+		//					name = entry.getValue();
+		//					break;
+		//				}
+		//			}
+		//			for (Session client : clients) {
+		//				client.getBasicRemote().sendText(name + " : " + message.substring(2));
+		//			}
+		//			break;
+		//		}
+
+	}
+
+	@OnClose
+	public void onClose(Session session) {
+		cnt = 0;
+		words.clear();
+		wordsMap.clear();
+		clients.remove(session);
+		userNames.remove(session.getId());
+		System.out.println("Closed: " + session.getId());
+	}
+
+	@OnError
+	public void onError(Session session, Throwable throwable) {
+		System.err.println("Error: " + throwable.getMessage());
+	}
+
+}

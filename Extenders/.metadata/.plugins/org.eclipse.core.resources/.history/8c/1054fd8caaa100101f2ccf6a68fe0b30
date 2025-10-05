@@ -1,0 +1,64 @@
+// ページの読み込み完了時、または WebSocket 接続が確立した後で定義
+// ★ 重要なフラグ: dtメッセージの受信と処理が完了したかを示す ★
+let dt_received_and_saved = false;
+
+ws.onmessage = function(event) {
+	let pElement = document.getElementById('result-text');
+	const rawData = event.data;
+	const checkDigit = rawData.substring(0, 2);
+	const content = rawData.substring(2);
+
+	// 画面遷移をチェックする関数 (goが来た後にdtが来る可能性も考慮)
+	const checkAndTransition = () => {
+		// dtの受信・保存が完了していれば、すぐに画面遷移
+		if (dt_received_and_saved) {
+			pElement.textContent = "GAME OVER";
+			window.location.href = "gameover.html";
+			return true;
+		}
+		return false;
+	};
+
+	// 画面遷移を遅延実行するためのIDを保持
+	let transition_timer = null;
+
+	switch (checkDigit) {
+		// ... (tm, gc のケースは省略) ...
+
+		case "dt":
+			console.log("dt受け取りました。LocalStorageに保存します。");
+			try {
+				const wordsJson = content;
+				localStorage.setItem('gameWordsJson', wordsJson);
+
+				// ★ 修正点1: フラグを立て、LocalStorageへの保存完了を保証 ★
+				dt_received_and_saved = true;
+				console.log("✅ dtメッセージ受信: LocalStorageにデータを保存しました。");
+
+				// ★ 修正点2: dtが先に届いた場合、すぐに画面遷移を試みる ★
+				if (transition_timer) {
+					clearTimeout(transition_timer); // goが先に処理されたタイマーをクリア
+					checkAndTransition();
+				}
+
+			} catch (e) {
+				console.error("【dt処理エラー】データ保存失敗:", e);
+			}
+			break;
+
+		case "go":
+			// ★ 修正点3: dtの処理がまだ終わっていなければ、タイマーを設定して待つ ★
+			if (!checkAndTransition()) {
+				console.log("go受け取りましたが、dtの処理完了を待ちます...");
+
+				// 確実にdtの処理が完了する時間を待つタイマーを設定
+				transition_timer = setTimeout(() => {
+					checkAndTransition();
+				}, 500); // 500ms待機
+			}
+			break;
+
+		default:
+		// ...
+	}
+}

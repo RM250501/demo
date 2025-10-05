@@ -1,0 +1,99 @@
+<!doctype html> <!-- HTML5宣言 -->
+<meta charset="utf-8"> <!-- 文字コードUTF-8 -->
+<title>3人マッチングデモ</title> <!-- ページタイトル -->
+<style>
+	body {
+		font-family: system-ui, sans-serif;
+		margin: 24px;
+	}
+
+	/* 見た目調整 */
+	.box {
+		border: 1px solid #ccc;
+		padding: 16px;
+		margin-top: 12px;
+	}
+
+	/* 枠 */
+	.hide {
+		display: none;
+	}
+
+	/* 非表示用クラス */
+</style>
+
+<h1>3人マッチング（2人同画面 + 1人別画面）</h1> <!-- 見出し -->
+
+<div id="status">接続中...</div> <!-- 状態表示欄 -->
+
+<div id="pairView" class="box hide"> <!-- PAIR用ビュー（初期は非表示） -->
+	<h2>PAIRビュー（同じ画面を共有する2人用）</h2>
+	<p>この入力はPAIR側だけで共有表示されます。</p>
+	<input id="pairInput" placeholder="PAIRへブロードキャスト"> <!-- 入力欄 -->
+	<button id="pairSend">PAIRに送信</button> <!-- 送信ボタン -->
+	<pre id="pairLog"></pre> <!-- 受信ログ表示 -->
+</div>
+
+<div id="soloView" class="box hide"> <!-- SOLO用ビュー（初期は非表示） -->
+	<h2>SOLOビュー（別画面の1人用）</h2>
+	<p>この入力はSOLO側だけで共有表示されます。</p>
+	<input id="soloInput" placeholder="SOLOへブロードキャスト">
+	<button id="soloSend">SOLOに送信</button>
+	<pre id="soloLog"></pre>
+</div>
+
+<script>
+	// 現在のページURLから ws:// or wss:// のWebSocket URLを組み立て
+	const wsUrl = (location.protocol === "https:" ? "wss://" : "ws://")
+		+ location.host                                  // host:port
+		+ location.pathname.replace(/\/[^/]*$/, "")      // 末尾ファイル名を削除
+		+ "/ws";                                         // サーバEndpointに合わせる
+	const ws = new WebSocket(wsUrl);                             // 接続オブジェクト作成
+
+	const $ = (id) => document.getElementById(id);                 // 簡易セレクタ
+	let myRole = null;                                           // 自分の役割（PAIR/ SOLO）
+	let myCohort = null;                                         // 自分のコホートID
+
+	ws.onopen = () => {$("status").textContent = "WebSocket接続OK。マッチング待ち...";};
+	// 接続成功時にメッセージ表示
+
+	ws.onmessage = (ev) => {                                     // サーバからの受信時
+		try {
+			const msg = JSON.parse(ev.data);                         // JSONパース
+			if (msg.type === "waiting") {                            // まだ3人未満
+				$("status").textContent = `あと ${msg.need} 人で開始`;
+			} else if (msg.type === "assign") {                      // 役割割当の通知
+				myRole = msg.role;
+				myCohort = msg.cohort;
+				$("status").textContent = `割り当て: role=${myRole}, cohort=${myCohort}`;
+				if (myRole === "PAIR") {                               // 役割に応じて表示切替
+					$("pairView").classList.remove("hide");
+					$("soloView").classList.add("hide");
+				} else {
+					$("soloView").classList.remove("hide");
+					$("pairView").classList.add("hide");
+				}
+			} else if (msg.type === "pairSync") {                    // PAIR向け受信
+				$("pairLog").textContent += msg.payload + "\n";
+			} else if (msg.type === "soloSync") {                    // SOLO向け受信
+				$("soloLog").textContent += msg.payload + "\n";
+			} else {
+				$("status").textContent = "msg: " + ev.data;           // その他はステータスに表示
+			}
+		} catch {
+			$("status").textContent = "text: " + ev.data;            // 非JSONはそのまま表示
+		}
+	};
+
+	$("pairSend").onclick = () => {                              // PAIR送信ボタン
+		const payload = $("pairInput").value || "";
+		ws.send(JSON.stringify({type: "pairSync", payload}));       // type=pairSync で送信
+		$("pairInput").value = "";                                 // 入力クリア
+	};
+
+	$("soloSend").onclick = () => {                              // SOLO送信ボタン
+		const payload = $("soloInput").value || "";
+		ws.send(JSON.stringify({type: "soloSync", payload}));       // type=soloSync で送信
+		$("soloInput").value = "";                                 // 入力クリア
+	};
+</script>

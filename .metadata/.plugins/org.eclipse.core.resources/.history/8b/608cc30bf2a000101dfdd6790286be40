@@ -1,0 +1,30 @@
+
+// エンドポイント
+const ws = new WebSocket("ws://localhost:8080/Extenders/chat");
+
+$(function(){
+	
+});
+
+$(function() {
+
+	$("#submit-button").click(function() {
+		console.log("送信ボタンが押されました");
+		let messageInput = document.getElementById("response-box");
+		sendMessage(messageInput.value);
+		messageInput.value = "";
+	});
+});
+
+// サーバからメッセージを受信したときの処理
+ws.onmessage = function(event) {
+	let chatHistory = document.getElementById("chatHistory");
+	chatHistory.value = chatHistory.value + event.data + "\n";
+}
+
+// サーバにメッセージを送るためのメソッド
+function sendMessage(value) {
+	setTimeout(function() {
+		ws.send("me" + value);
+	}, 300);
+}

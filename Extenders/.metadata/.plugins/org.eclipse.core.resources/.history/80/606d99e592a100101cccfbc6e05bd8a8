@@ -1,0 +1,60 @@
+// エンドポイント
+const ws = new WebSocket("ws://localhost:8080/Extenders/chat");
+
+// 起動時の無意味な送信を削除し、コンソール確認のため ws.onopen を追加
+$(function() {
+	console.log("DOMロード完了。WebSocket接続を待っています...");
+});
+
+// WebSocket接続が確立したときの処理
+ws.onopen = function() {
+	console.log("✅ WebSocket接続が正常に確立されました。");
+};
+
+// サーバからメッセージを受信したときの処理
+ws.onmessage = function(event) {
+	// ★ 1. 未定義だった変数をonmessageの冒頭で定義 ★
+	const rawData = event.data;
+	const checkDigit = rawData.substring(0, 2);
+	const content = rawData.substring(2);
+
+	// 受信確認
+	console.log(`[IN] Raw Message: ${rawData}`);
+
+
+	switch (checkDigit) {
+
+		case "dt":
+			// ★ データ受信処理を dt に統一 ★
+			try {
+				const wordsJson = content;
+
+				// Local StorageにJSON文字列を保存
+				localStorage.setItem('gameWordsJson', wordsJson);
+
+				// JSON文字列をJavaScriptの配列オブジェクトに変換
+				const receivedWords = JSON.parse(wordsJson);
+
+				// コンソールにデータを出力
+				console.group("✅ WebSocketから回答リストを受信 (dt)");
+				console.log("JSON文字列 (LocalStorageに保存):", wordsJson);
+				console.log("JS配列オブジェクト:", receivedWords);
+				console.groupEnd();
+
+			} catch (e) {
+				console.error("【dt処理エラー】受信データが正しく解析できませんでした:", e);
+				console.log("エラーを起こした受信データ:", content);
+			}
+			break;
+		default:
+			console.warn(`[WARN] Unknown Check Digit: ${checkDigit}`);
+	}
+}
+
+// サーバにメッセージを送るためのメソッド
+function sendMessage(value) {
+	setTimeout(function() {
+		console.log(`[OUT] WebSocketへ送信: ${value}`);
+		ws.send(value);
+	}, 300);
+}

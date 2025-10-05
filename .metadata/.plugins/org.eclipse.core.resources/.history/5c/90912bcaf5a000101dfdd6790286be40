@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>連想ワードゲーム</title>
+	<link rel="stylesheet" href="css/style.css">
+	<script src="js/jquery-2.1.4.min.js"></script>
+	<script src="js/index.js"></script>
+</head>
+
+<body>
+	<div class="game-container">
+		<header class="game-header">
+			<h1>🧠 連想ワードゲーム</h1>
+			<p>表示されたお題から連想されるワードを入力してね！</p>
+
+			<section class="result-section hidden" id="result-area">
+				<p id="result-text" class="result-message">判定結果を待っています...</p>
+			</section>
+		</header>
+
+		<main class="game-main">
+			<section class="prompt-section">
+				<h2>今日のお題</h2>
+				<input type="text" id="prompt-box" class="text-box prompt-box" value="宇宙" readonly>
+			</section>
+
+			<section class="input-section">
+				<h2>あなたの連想ワード</h2>
+				<input type="text" id="response-box" class="text-box response-box" placeholder="例: ロケット、星、無重力..."
+					maxlength="20">
+			</section>
+		</main>
+
+		<footer class="game-footer">
+			<button id="submit-button" class="submit-button">
+				🚀 ワードを送信！
+			</button>
+		</footer>
+	</div>
+</body>
+
+</html>

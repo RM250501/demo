@@ -1,0 +1,54 @@
+document.addEventListener('DOMContentLoaded', () => {
+
+	// Local StorageからJSON文字列を取得
+	const wordsJson = localStorage.getItem('gameWordsJson');
+	console.log(wordsJson);
+
+	if (wordsJson) {
+		try {
+			// JSON文字列をJavaScriptの配列オブジェクトに変換
+			const words = JSON.parse(wordsJson);
+
+			// データのコンソール出力と確認
+			console.group("✅ GO画面: Local Storageから結果を取得");
+			console.log("JSON文字列:", wordsJson);
+			console.log("回答リスト (JS配列):", words);
+			console.groupEnd();
+
+			// データの描画処理（HTML要素への反映）はここに追加します
+			// displayPlayerAnswers(words); 
+
+			let htmlContent = '';
+
+			// wordsMap（キーと値のペア）をループ処理
+			for (const [userId, answer] of Object.entries(wordsMap)) {
+
+				// ユーザーIDを整形 (例: "User5" → "プレイヤー 5")
+				// ※ もしユーザー名を別途管理しているなら、ここで置き換えてください
+				const playerName = userId.replace('User', 'プレイヤー ');
+
+				// HTMLテンプレートに合わせて<li>要素を作成
+				// <li class="answer-item"><span class="player-name">...</span>: <span class="player-answer-different">...</span></li>
+				htmlContent += `
+			                    <li class="answer-item">
+			                        <span class="player-name">${playerName}</span>: 
+			                        <span class="player-answer-different">${answer}</span>
+			                    </li>
+			                `;
+			}
+
+			// ★ 既存のリスト内容を新しい回答で置き換える ★
+			answersList.innerHTML = htmlContent;
+
+
+			// データが二重で使われないようストレージから削除
+			localStorage.removeItem('gameWordsJson');
+
+		} catch (e) {
+			console.error("Local Storageデータの解析に失敗しました:", e);
+		}
+	} else {
+		console.warn("Local Storageにゲーム結果データが見つかりませんでした。");
+	}
+
+});
